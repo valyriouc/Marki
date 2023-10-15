@@ -336,25 +336,28 @@ namespace MarkdownParser
         {
             string alt = string.Empty;
             string image = string.Empty;
-            bool change = false;
+            bool change = true;
             Stack<char> bracketTrack = new Stack<char>();
             for (int i = 1; i < line.Length; i++)
             {
                 if (line[i] == '[' ||
                     line[i] == '(')
                 {
+                    change = !change;
                     bracketTrack.Push(line[i]);
+                    continue;
                 }
 
                 if (line[i] == ']' && bracketTrack.Peek() != '[' || 
-                    line[i] == ')' && bracketTrack.Peek() != ')')
+                    line[i] == ')' && bracketTrack.Peek() != '(')
                 {
                     throw new Exception(
-                        "Invalid image reference found!");
+                        "Invalid image!");
                 }
-                else
+                else if (line[i] == ']' && bracketTrack.Peek() == '[' ||
+                    line[i] == ')' && bracketTrack.Peek() == '(')
                 {
-                    change = true;
+                    continue;
                 }
 
                 if (!change)
@@ -492,7 +495,7 @@ namespace MarkdownParser
                     "Image is empty");
             }
 
-            string html = $"<img alt={alt} src={image}>";
+            string html = $"<img alt=\"{alt}\" src=\"{image}\">";
             Output.WriteLine(html);
         }
 
