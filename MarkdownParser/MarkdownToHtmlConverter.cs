@@ -172,7 +172,12 @@ namespace MarkdownParser
                         GenerateImage(alt, image);
                         break;
                     case MarkdownStartSign.OpenBracket:
-                        
+                        GenerateParagraph();
+                        GenerateOrderedList();
+                        GenerateUnorderedList();
+                        GenerateBlockQuote();
+                        (string text, string link) = ParseLink(line);
+                        GenerateLink(text, link);
                         break;
                     default:
                         // Reading paragraph 
@@ -336,6 +341,13 @@ namespace MarkdownParser
         {
             string alt = string.Empty;
             string image = string.Empty;
+
+            if (line[0] != '!')
+            {
+                throw new Exception(
+                    "Image must start with !");
+            }
+
             bool change = true;
             Stack<char> bracketTrack = new Stack<char>();
             for (int i = 1; i < line.Length; i++)
@@ -371,6 +383,54 @@ namespace MarkdownParser
             } 
 
             return (alt, image);    
+        }
+
+        private (string text, string link) ParseLink(string line)
+        {
+            string text = string.Empty;
+            string link = string.Empty;
+            
+            if (line[0] != '[')
+            {
+                throw new Exception(
+                    "Expected [ for link start!");
+            }
+
+            bool changed = true;
+            Stack<char> bracketStack = new Stack<char>();
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (line[i] == ']' && bracketStack.Peek() != '[' ||
+                    line[i] == ')' && bracketStack.Peek() != '(')
+                {
+                    throw new Exception(
+                        "Invalid link!");
+                } 
+                else if (line[i] == ']' && bracketStack.Peek() == '[' ||
+                    line[i] == ')' && bracketStack.Peek() == '(')
+                {
+                    continue;
+                }
+
+                if (line[i] == '[' ||
+                    line[i] == '(')
+                {
+                    changed = !changed;
+                    bracketStack.Push(line[i]);
+                    continue;
+                }
+
+                if (!changed)
+                {
+                    text += line[i];
+                }
+                else
+                {
+                    link += line[i];
+                }
+            }
+
+            return (text, link);
         }
 
         #endregion
@@ -497,6 +557,15 @@ namespace MarkdownParser
 
             string html = $"<img alt=\"{alt}\" src=\"{image}\">";
             Output.WriteLine(html);
+        }
+
+        private void GenerateLink(string text, string link)
+        {
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentNullException(nameof(text));
+            if (string.IsNullOrWhiteSpace(link)) throw new ArgumentNullException(nameof(link));
+
+            string html = $"<a href=\"{link}\">{text}</a>";
+            Output.Write(html);
         }
 
         #endregion
