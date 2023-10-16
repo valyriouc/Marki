@@ -432,6 +432,38 @@ namespace MarkdownParser
 
             return (text, link);
         }
+        
+        private void ParseInline(string line)
+        {
+            for (int i = 0; i < line.Length; i++)
+            {
+                switch(line[i])
+                {
+                    case '[':
+                        // None
+                        break;
+                    case '*':
+                        break;
+                    case '`':
+                        break;
+                }
+            }
+        }
+
+        private void ParseBold(string line)
+        {
+
+        }
+
+        private void ParseItalic(string line)
+        {
+
+        }
+
+        private void ParseCode(string line)
+        {
+
+        }
 
         #endregion
 
